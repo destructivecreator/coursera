@@ -23,6 +23,7 @@ public class WordNet {
 		// Construct the graph
 		this.G = new Digraph(this.graphLength);
 
+		// Add edges to the graph
 		for (Map.Entry<Integer, ArrayList<Integer>> entry : edges.entrySet()) {
 			for (Integer w : entry.getValue()) {
 				this.G.addEdge(entry.getKey(), w);
@@ -41,11 +42,12 @@ public class WordNet {
 			if (!this.G.adj(i).iterator().hasNext())
 				rooted++;
 		}
-
+		
 		if (rooted != 1) {
 			throw new IllegalArgumentException("Not a rooted DAG");
 		}
 
+		// Initialise sap
 		this.sap = new SAP(this.G);
 	}
 
@@ -60,8 +62,7 @@ public class WordNet {
 	}
 
 	// distance between nounA and nounB (defined below)
-	public int distance(String nounA, String nounB) {
-		
+	public int distance(String nounA, String nounB) {	
 		if(!this.nouns.containsKey(nounA) || !this.nouns.containsKey(nounB))
 			throw new IllegalArgumentException("Not a valid pair of nouns");
 		
@@ -70,21 +71,14 @@ public class WordNet {
 
 	// a synset (second field of synsets.txt) that is the common ancestor of nounA and nounB
 	// in a shortest ancestral path (defined below)
-	public String sap(String nounA, String nounB) {
-		
+	public String sap(String nounA, String nounB) {	
 		if(!this.nouns.containsKey(nounA) || !this.nouns.containsKey(nounB))
 			throw new IllegalArgumentException("Not a valid pair of nouns");
 			
 		int ancestor = this.sap.ancestor(this.nouns.get(nounA),	this.nouns.get(nounB));
-
 		return this.synsets.get(ancestor);
 	}
-
-	/**
-	 * Build a sorted list of all the wordnet nouns
-	 * 
-	 * @param synsets
-	 */
+	
 	private void processSynsets(String synsets) {
 		In in = new In(synsets);
 		String line = null;
@@ -95,7 +89,6 @@ public class WordNet {
 		while ((line = in.readLine()) != null) {
 
 			if (line.equals("")) {	continue;	}
-
 			
 			String[] lineElements = line.split(","); // split line
 			String[] nouns = lineElements[1].split(" "); // get the second field
