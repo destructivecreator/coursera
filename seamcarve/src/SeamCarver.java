@@ -1,17 +1,18 @@
 
 import java.awt.Color;
+import java.util.ArrayList;
 
 public class SeamCarver {
 
     private static final int BORDER_PIXEL_ENERGY = 195075;
     private Picture picture;
-    public int[][] energy;
+    public double[][] energy;
 
     public SeamCarver(Picture picture) {
 
         this.picture = picture;
 
-        energy = new int[width()][height()];
+        energy = new double[width()][height()];
 
         //calculateEnergies();
 
@@ -28,7 +29,7 @@ public class SeamCarver {
         g = Math.abs(leftPixel.getGreen() - rightPixel.getGreen());
         b = Math.abs(leftPixel.getBlue() - rightPixel.getBlue());
 
-        return  Math.pow(r, 2) + Math.pow(g, 2) + Math.pow(b, 2);
+        return Math.pow(r, 2) + Math.pow(g, 2) + Math.pow(b, 2);
 
     }
 
@@ -86,100 +87,102 @@ public class SeamCarver {
     }
 
     public double energy(int x, int y) {
-        
+
         return calcXGradient(x, y) + calcYGradient(x, y);
     }
 
     public int[] findHorizontalSeam() {
         return null;
     }
-    
+
     private int coordsToIndex(int x, int y) {
-        
+
         return (y * width()) + x;
-     }
+    }
 
-    public int[] findVerticalSeam() {
+    public Object[] findVerticalSeam() {
 
-        EdgeWeightedDigraph ewd =  new EdgeWeightedDigraph(height());
-        
-        for(int y=0, y<height(); y++) {
-            for(int x=0; x<width(); x++) {
+        EdgeWeightedDigraph ewd = new EdgeWeightedDigraph(height());
+
+        for (int y = 0; y <height (); y++) {
+            for (int x = 0; x < width(); x++) {
                 //top-left
-                if(x == 0 && y == 0) {
-                    DirectedEdge edge1= new DrectedEdge(coordsToIndex(x, y), coordsToIndex(x, y+1), energy(x, y+1));
-                    DirectedEdge edge2= new DrectedEdge(coordsToIndex(x, y), coordsToIndex(x+1, y+1), energy(x+1, y+1));
-                 
+                if (x == 0 && y == 0) {
+                    DirectedEdge edge1 = new DirectedEdge(coordsToIndex(x, y), coordsToIndex(x, y + 1), energy(x, y + 1));
+                    DirectedEdge edge2 = new DirectedEdge(coordsToIndex(x, y), coordsToIndex(x + 1, y + 1), energy(x + 1, y + 1));
+
                     ewd.addEdge(edge1);
                     ewd.addEdge(edge2);
-                    
+
                     continue;
                 }
-                
+
                 // top-right
-                if(x == width() && y == 0) {
-                    DirectedEdge edge1= new DrectedEdge(coordsToIndex(x, y), coordsToIndex(x-1, y+1), energy(x-1, y+1));
-                    DirectedEdge edge2= new DrectedEdge(coordsToIndex(x, y), coordsToIndex(x, y+1), energy(x, y+1));
-                 
+                if (x == width() && y == 0) {
+                    DirectedEdge edge1 = new DirectedEdge(coordsToIndex(x, y), coordsToIndex(x - 1, y + 1), energy(x - 1, y + 1));
+                    DirectedEdge edge2 = new DirectedEdge(coordsToIndex(x, y), coordsToIndex(x, y + 1), energy(x, y + 1));
+
                     ewd.addEdge(edge1);
                     ewd.addEdge(edge2);
-                                    
+
                     continue;
                 }
-                
+
                 //bottom-left 
-                if(y == height()) {
+                if (y == height()) {
                     continue;
                 }
-                
+
                 // normal case
-                DirectedEdge edge1= new DrectedEdge(coordsToIndex(x, y), coordsToIndex(x-1, y+1), energy(x-1, y+1));
-                DirectedEdge edge2= new DrectedEdge(coordsToIndex(x, y), coordsToIndex(x, y+1), energy(x, y+1));
-                DirectedEdge edge3= new DrectedEdge(coordsToIndex(x, y), coordsToIndex(x+1, y+1), energy(x+1, y+1));
-                
+                DirectedEdge edge1 = new DirectedEdge(coordsToIndex(x, y), coordsToIndex(x - 1, y + 1), energy(x - 1, y + 1));
+                DirectedEdge edge2 = new DirectedEdge(coordsToIndex(x, y), coordsToIndex(x, y + 1), energy(x, y + 1));
+                DirectedEdge edge3 = new DirectedEdge(coordsToIndex(x, y), coordsToIndex(x + 1, y + 1), energy(x + 1, y + 1));
+
                 ewd.addEdge(edge1);
                 ewd.addEdge(edge2);
                 ewd.addEdge(edge3);
             }
         }
-        
+
         double minWeight = Double.POSITIVE_INFINITY;
-        ArraList<Integer> path = new ArrayList<Integer>(height());
-        Iterable<DirectedEdge> vSeam= null;
-        
+        ArrayList<Integer> path = new ArrayList<Integer>(height());
+        Iterable<DirectedEdge> vSeam = null;
+
         //find the the REALLY SHORTEST PATH FROM ALL DIJKSTRA instances
         for (int x = 0; x < width(); x++) {
             DijkstraSP dsp = new DijkstraSP(ewd, coordsToIndex(x, 0));
-            
+
             //find the shortest path from source to the bottom
             double dspMinWeight = Double.POSITIVE_INFINITY;
             int shortestIndex = -1;
-            for(int x2 = 0; x2 < width(); x2++) {
-                
-                if(dsp.distTo(coordsToIndex(x, height())) < dspMinWeight) {
-                    dspMinWeight = dsp.distTo(coordsToIndex(x, height());
+            for (int x2 = 0; x2 < width(); x2++) {
+
+                if (dsp.distTo(coordsToIndex(x, height())) < dspMinWeight) {
+                    dspMinWeight = dsp.distTo(coordsToIndex(x, height()));
                     shortestIndex = x2;
                 }
             }
-            
-            if(dspMinWeight <  minWeight) {
+
+            if (dspMinWeight < minWeight) {
                 minWeight = dspMinWeight;
                 vSeam = dsp.pathTo(shortestIndex);
             }
-            
-            
+
+
         }
-        
-        boolean first = false;
-        for(DirectedEdge edge : vSeam) {
-            if(!first) {
+
+        boolean first = true;
+        for (DirectedEdge edge : vSeam) {
+            if (first) {
                 path.add(edge.from());
-            } else { 
+                first = false;
+            } else {
                 path.add(edge.to());
             }
+
         }
-        
-        return null;
+
+        return path.toArray();
     }
 
     public void removeHorizontalSeam(int[] a) {
