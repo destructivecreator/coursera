@@ -100,11 +100,11 @@ public class SeamCarver {
         return (y * width()) + x;
     }
 
-    public Object[] findVerticalSeam() {
+    public int[] findVerticalSeam() {
 
         EdgeWeightedDigraph ewd = new EdgeWeightedDigraph(height());
 
-        for (int y = 0; y <height (); y++) {
+        for (int y = 0; y < height(); y++) {
             for (int x = 0; x < width(); x++) {
                 //top-left
                 if (x == 0 && y == 0) {
@@ -145,7 +145,6 @@ public class SeamCarver {
         }
 
         double minWeight = Double.POSITIVE_INFINITY;
-        ArrayList<Integer> path = new ArrayList<Integer>(height());
         Iterable<DirectedEdge> vSeam = null;
 
         //find the the REALLY SHORTEST PATH FROM ALL DIJKSTRA instances
@@ -157,8 +156,8 @@ public class SeamCarver {
             int shortestIndex = -1;
             for (int x2 = 0; x2 < width(); x2++) {
 
-                if (dsp.distTo(coordsToIndex(x, height())) < dspMinWeight) {
-                    dspMinWeight = dsp.distTo(coordsToIndex(x, height()));
+                if (dsp.distTo(coordsToIndex(x2, height())) < dspMinWeight) {
+                    dspMinWeight = dsp.distTo(coordsToIndex(x2, height()));
                     shortestIndex = x2;
                 }
             }
@@ -167,22 +166,16 @@ public class SeamCarver {
                 minWeight = dspMinWeight;
                 vSeam = dsp.pathTo(shortestIndex);
             }
-
-
         }
 
-        boolean first = true;
+        int[] path = new int[height()];
+        int count = 0;
         for (DirectedEdge edge : vSeam) {
-            if (first) {
-                path.add(edge.from());
-                first = false;
-            } else {
-                path.add(edge.to());
-            }
-
+            path[count] = edge.from();
+            ++count;
         }
 
-        return path.toArray();
+        return path;
     }
 
     public void removeHorizontalSeam(int[] a) {
